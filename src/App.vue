@@ -1,7 +1,8 @@
 <template>
   <div class="justify-center flex-1">
-    <div class="container pt-8 mx-auto">
+    <div class="container h-screen pt-8 mx-auto">
       <HelloWorld msg="Hello Vue 3 + Vite + Tailwind CSS" />
+      <RarityTable />
     </div>
   </div>
 </template>
@@ -10,10 +11,12 @@
 import { defineComponent } from 'vue'
 
 import HelloWorld from './components/HelloWorld.vue'
+import RarityTable from './components/RarityTable.vue'
 
 export default defineComponent({
   components: {
     HelloWorld,
+    RarityTable,
   },
 })
 </script>

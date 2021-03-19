@@ -1,19 +1,6 @@
-# Vite Typescript + Tailwind Starter
+# NFT Rarity
 
-Simple, opinionated TS + Tailwind project template for experimenting w/ Vite.
-
-## Features
-
-- Vue 3
-- TypeScript
-- Tailwind CSS
-- Eslint
-- Prettier
-- Simple reactive store
-- Cypress.io e2e tests (configured similarly to `vue-cli`)
-- GitHub workflows
-  - Dependabot
-  - Automated e2e tests
+[![Netlify Status](https://api.netlify.com/api/v1/badges/8299cd3c-3778-455b-8f15-90e73144f667/deploy-status)](https://app.netlify.com/sites/nft-rarity/deploys)
 
 ## Project setup and usage
 

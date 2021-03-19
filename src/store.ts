@@ -25,9 +25,23 @@ const fakeData: Array<RarityRow> = [
   },
 ]
 
-export const globalState = reactive({
+interface Wallet {
+  address: string
+  balance: string
+}
+
+interface GlobalState {
+  count: number
+  rarityData: Array<RarityRow>
+  sortAsc: boolean
+  sortIndex: number
+  wallet?: Wallet
+}
+
+export const globalState = reactive<GlobalState>({
   count: 0,
   rarityData: fakeData,
   sortAsc: true,
   sortIndex: -1,
+  wallet: undefined,
 })

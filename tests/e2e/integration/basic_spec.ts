@@ -4,6 +4,6 @@ describe('Homepage', () => {
   it('Shows correct text', () => {
     cy.visit('/')
 
-    cy.contains('h1', 'Hello Vue 3 + Vite + Tailwind CSS')
+    cy.contains('h1', 'Connect Wallet to see ETH tokens')
   })
 })

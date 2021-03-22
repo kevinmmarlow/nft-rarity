@@ -4,6 +4,6 @@ describe('Homepage', () => {
   it('Shows correct text', () => {
     cy.visit('/')
 
-    cy.contains('h1', 'Connect Wallet to see ETH tokens')
+    cy.contains('h1', 'Connect Wallet to see ERC-20 tokens')
   })
 })

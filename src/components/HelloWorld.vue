@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-10 w-full flex justify-between align-end">
+  <div class="mb-10 w-full flex justify-between align-end space-x-10">
     <div class="flex-initial prose">
       <h1>{{ msg }}</h1>
     </div>

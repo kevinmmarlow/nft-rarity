@@ -30,7 +30,7 @@ export default defineComponent({
     const connectWallet = async () => {
       const provider = await enableProvider()
       const address = readAddress()
-      wallet.value = address
+      wallet.value = { address, balance: '' }
       const balance = (await readBalance(provider, address)) || ''
       wallet.value = { address, balance }
       const addressName = await lookupAddress(provider, address)

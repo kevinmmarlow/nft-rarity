@@ -1,5 +1,5 @@
 <template>
-  <table class="table-auto">
+  <table v-if="data.length > 0" class="w-full table-auto">
     <thead>
       <tr>
         <th class="px-4 py-2 cursor-pointer" @click="sortByTitle">
@@ -17,6 +17,9 @@
       </tr>
     </tbody>
   </table>
+  <div v-else class="py-10 h-screen prose-lg text-center text-gray-700">
+    <h4>Connect Wallet to Load Token Table</h4>
+  </div>
 </template>
 
 <script lang="ts">
@@ -46,7 +49,7 @@ const useSorting = () => {
   }
 
   const sortByAuthor = () => {
-    globalState.tokenData.sort((a, b) => sortByString(a.amount, b.amount, sortAsc.value))
+    globalState.tokenData.sort((a, b) => sortByString(a.balance, b.balance, sortAsc.value))
     globalState.sortAsc = !sortAsc.value
     globalState.sortIndex = 1
   }

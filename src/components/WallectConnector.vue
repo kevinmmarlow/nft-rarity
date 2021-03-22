@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { defineComponent, toRef } from 'vue'
-import { globalState } from '../store'
+import { globalState, TokenRow } from '../store'
 import {
   hasConnectableWallet,
   readAddress,
@@ -19,10 +19,13 @@ import {
   lookupAddress,
   enableProvider,
 } from '../helpers/crypto'
+import { ethers } from 'ethers'
+import tokenJson from '../assets/tokens.json'
 
 export default defineComponent({
   setup() {
     const wallet = toRef(globalState, 'wallet')
+    const tokenData = toRef(globalState, 'tokenData')
 
     const connectWallet = async () => {
       const provider = await enableProvider()
@@ -32,6 +35,44 @@ export default defineComponent({
       wallet.value = { address, balance }
       const addressName = await lookupAddress(provider, address)
       wallet.value = { address: addressName, balance }
+      readTokens(provider, address)
+    }
+
+    const readTokens = async (provider: ethers.providers.BaseProvider, owner: string) => {
+      const abi = [
+        'function balanceOf(address owner) view returns (uint256)',
+        'function decimals() view returns (uint8)',
+        'function symbol() view returns (string)',
+      ]
+
+      const promises = tokenJson.map((data) => {
+        return new Promise<TokenRow>(async (resolve, reject) => {
+          try {
+            const contract = new ethers.Contract(data.address, abi, provider)
+            const rawBalance = await contract.balanceOf(owner)
+            if (ethers.utils.hexValue(rawBalance) === '0x0') {
+              reject('No balance')
+            }
+
+            const balance = parseFloat(ethers.utils.formatUnits(rawBalance, data.decimals || 18))
+            resolve({
+              rawBalance,
+              symbol: data.symbol,
+              name: data.name,
+              balance: balance.toFixed(4),
+            })
+          } catch (err) {
+            console.error(err)
+            reject(err)
+          }
+        })
+      })
+      const tokenBalances = await Promise.allSettled(promises)
+      const pureBalances = tokenBalances
+        .filter((result) => result.status === 'fulfilled')
+        .map((result) => result.value as TokenRow)
+
+      tokenData.value = pureBalances as Array<TokenRow>
     }
 
     return {

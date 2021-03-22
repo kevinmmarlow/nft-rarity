@@ -1,29 +1,11 @@
 import { reactive } from 'vue'
 
-export interface RarityRow {
-  title: string
-  author: string
-  views: number
+export interface TokenRow {
+  symbol: string
+  balance: string
+  rawBalance: string
+  name: string
 }
-
-const fakeData: Array<RarityRow> = [
-  {
-    title: 'Intro to CSS',
-    author: 'Adam',
-    views: 858,
-  },
-  {
-    title:
-      'A Long and Winding Tour of the History of UI Frameworks and Tools and the Impact on Design',
-    author: 'Adam',
-    views: 112,
-  },
-  {
-    title: 'Intro to JavaScript',
-    author: 'Chris',
-    views: 1280,
-  },
-]
 
 interface Wallet {
   address: string
@@ -31,16 +13,14 @@ interface Wallet {
 }
 
 interface GlobalState {
-  count: number
-  rarityData: Array<RarityRow>
+  tokenData: Array<TokenRow>
   sortAsc: boolean
   sortIndex: number
   wallet?: Wallet
 }
 
 export const globalState = reactive<GlobalState>({
-  count: 0,
-  rarityData: fakeData,
+  tokenData: [],
   sortAsc: true,
   sortIndex: -1,
   wallet: undefined,

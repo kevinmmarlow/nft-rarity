@@ -1,7 +1,7 @@
 <template>
   <div class="justify-center flex-1">
     <div class="container h-screen pt-8 mx-auto">
-      <hello-world msg="Hello Vue 3 + Vite + Tailwind CSS" />
+      <hello-world msg="Connect Wallet to see ETH tokens" />
       <wallect-connector />
       <rarity-table />
     </div>

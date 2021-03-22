@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { defineComponent, toRef } from 'vue'
-import { globalState, TokenRow } from '../store'
+import { globalState, Erc20Token, Erc721Token } from '../store'
 import {
   hasConnectableWallet,
   readAddress,
@@ -20,33 +20,35 @@ import {
   enableProvider,
 } from '../helpers/crypto'
 import { ethers } from 'ethers'
-import tokenJson from '../assets/tokens.json'
+import erc20TokenJson from '../assets/erc20_tokens.json'
+import erc721TokenJson from '../assets/erc721_tokens.json'
 
 export default defineComponent({
   setup() {
     const wallet = toRef(globalState, 'wallet')
-    const tokenData = toRef(globalState, 'tokenData')
+    const erc20Tokens = toRef(globalState, 'erc20Tokens')
+    const erc721Tokens = toRef(globalState, 'erc721Tokens')
 
     const connectWallet = async () => {
       const provider = await enableProvider()
-      const address = readAddress()
+      const address = await readAddress()
       wallet.value = { address, balance: '' }
-      const balance = (await readBalance(provider, address)) || ''
+      let balance = await readBalance(provider, address)
+      balance = balance || ''
       wallet.value = { address, balance }
       const addressName = await lookupAddress(provider, address)
-      wallet.value = { address: addressName, balance }
-      readTokens(provider, address)
+      if (addressName) {
+        wallet.value = { address: addressName, balance }
+      }
+      readErc20Tokens(provider, address)
+      readErc721Tokens(provider, address)
     }
 
-    const readTokens = async (provider: ethers.providers.BaseProvider, owner: string) => {
-      const abi = [
-        'function balanceOf(address owner) view returns (uint256)',
-        'function decimals() view returns (uint8)',
-        'function symbol() view returns (string)',
-      ]
+    const readErc20Tokens = async (provider: ethers.providers.BaseProvider, owner: string) => {
+      const abi = ['function balanceOf(address owner) view returns (uint256)']
 
-      const promises = tokenJson.map((data) => {
-        return new Promise<TokenRow>(async (resolve, reject) => {
+      const promises = erc20TokenJson.map((data) => {
+        return new Promise<Erc20Token>(async (resolve, reject) => {
           try {
             const contract = new ethers.Contract(data.address, abi, provider)
             const rawBalance = await contract.balanceOf(owner)
@@ -62,7 +64,7 @@ export default defineComponent({
               balance: balance.toFixed(4),
             })
           } catch (err) {
-            console.error(err)
+            console.error(data.symbol, err)
             reject(err)
           }
         })
@@ -70,9 +72,51 @@ export default defineComponent({
       const tokenBalances = await Promise.allSettled(promises)
       const pureBalances = tokenBalances
         .filter((result) => result.status === 'fulfilled')
-        .map((result) => result.value as TokenRow)
+        .map((result) => (result as PromiseFulfilledResult<Erc20Token>).value as Erc20Token)
 
-      tokenData.value = pureBalances as Array<TokenRow>
+      erc20Tokens.value = pureBalances as Array<Erc20Token>
+    }
+
+    const readErc721Tokens = async (provider: ethers.providers.BaseProvider, owner: string) => {
+      const abi = [
+        'function totalSupply() view returns (uint256)',
+        'function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)',
+        'function balanceOf(address owner) view returns (uint256)',
+      ]
+
+      const promises = erc721TokenJson.map((data) => {
+        return new Promise<Erc721Token>(async (resolve, reject) => {
+          try {
+            const contract = new ethers.Contract(data.address, abi, provider)
+            const totalSupply = await contract
+              .totalSupply()
+              .then((result: ethers.BigNumber) => (result ? result.toString() : 0))
+            const balance = await contract
+              .balanceOf(owner)
+              .then((result: ethers.BigNumber) => (result ? result.toString() : 0))
+
+            // for (var i = 0; i < balance.toNumber(); i++) {
+            //   const tokenId = await contract.tokenOfOwnerByIndex.call(owner, i)
+            //   console.log(tokenId)
+            // }
+
+            resolve({
+              name: data.name,
+              balance,
+              totalSupply,
+            })
+          } catch (err) {
+            console.error(data.name, err)
+            reject(err)
+          }
+        })
+      })
+      const tokenBalances = await Promise.allSettled(promises)
+      const pureBalances = tokenBalances
+        .filter((result) => result.status === 'fulfilled')
+        .map((result) => (result as PromiseFulfilledResult<Erc721Token>).value as Erc721Token)
+
+      erc721Tokens.value = pureBalances as Array<Erc721Token>
     }
 
     return {

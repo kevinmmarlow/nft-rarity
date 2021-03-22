@@ -1,19 +1,22 @@
 <template>
-  <table v-if="data.length > 0" class="w-full table-auto">
+  <table v-if="data.length > 0" class="w-full table-fixed">
     <thead>
       <tr>
-        <th class="px-4 py-2 cursor-pointer" @click="sortByTitle">
-          Symbol {{ sortIndex === 0 ? (sortAsc ? '▲' : '▼') : '' }}
-        </th>
-        <th class="px-4 py-2 cursor-pointer" @click="sortByAuthor">
-          Balance {{ sortIndex === 1 ? (sortAsc ? '▲' : '▼') : '' }}
+        <th
+          v-for="(col, index) in headers"
+          :key="index"
+          class="px-4 py-2 cursor-pointer"
+          @click="() => sortByKey(col.key)"
+        >
+          {{ col.name }} {{ sortIndex === 0 ? (sortAsc ? '▲' : '▼') : '' }}
         </th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="(row, index) in data" :key="index" class="table-row">
-        <td class="border px-4 py-2">{{ row.symbol }}</td>
-        <td class="border px-4 py-2">{{ row.balance }}</td>
+        <td v-for="(col, colIdx) in headers" :key="colIdx" class="border px-4 py-2">
+          {{ row[col.key] }}
+        </td>
       </tr>
     </tbody>
   </table>
@@ -23,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRef } from 'vue'
+import { defineComponent, toRef, toRefs } from 'vue'
 import { globalState } from '../store'
 
 const sortByString = (a: string, b: string, sortAsc: boolean) => {
@@ -39,40 +42,45 @@ const sortByString = (a: string, b: string, sortAsc: boolean) => {
 //   return sortAsc ? a - b : b - a
 // }
 
-const useSorting = () => {
+const useSorting = (data: Array<any>) => {
   const sortAsc = toRef(globalState, 'sortAsc')
 
-  const sortByTitle = () => {
-    globalState.tokenData.sort((a, b) => sortByString(a.symbol, b.symbol, sortAsc.value))
+  const sortByKey = (key: string): Array<any> => {
+    data.sort((a, b) => sortByString(a[`${key}`], b[`${key}`], sortAsc.value))
     globalState.sortAsc = !sortAsc.value
     globalState.sortIndex = 0
-  }
 
-  const sortByAuthor = () => {
-    globalState.tokenData.sort((a, b) => sortByString(a.balance, b.balance, sortAsc.value))
-    globalState.sortAsc = !sortAsc.value
-    globalState.sortIndex = 1
+    return data
   }
 
   return {
     sortAsc,
-    sortByTitle,
-    sortByAuthor,
+    sortByKey,
   }
 }
 
 export default defineComponent({
-  setup() {
-    const data = toRef(globalState, 'tokenData')
+  props: {
+    data: {
+      type: [Array],
+      required: true,
+    },
+    headers: {
+      type: [Array],
+      required: true,
+    },
+  },
+  setup(props) {
     const sortIndex = toRef(globalState, 'sortIndex')
-    const { sortAsc, sortByTitle, sortByAuthor } = useSorting()
+    const { sortAsc, sortByKey } = useSorting(props.data)
+    const { data, headers } = toRefs(props)
 
     return {
       data,
+      headers,
       sortAsc,
       sortIndex,
-      sortByTitle,
-      sortByAuthor,
+      sortByKey,
     }
   },
 })

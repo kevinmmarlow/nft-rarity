@@ -1,7 +1,12 @@
 <template>
   <div v-if="hasConnectableWallet" class="text-center">
-    <button v-if="!wallet" class="btn btn-indigo" @click="connectWallet">Connect Wallet</button>
-    <div class="font-bold py-2 px-4 rounded-md shadow border border-indigo-500 prose-sm" v-else>
+    <button v-if="!wallet" class="btn btn-indigo transition duration-300" @click="connectWallet">
+      Connect Wallet
+    </button>
+    <div
+      class="flex space-x-4 font-bold py-2 px-4 rounded-md border border-indigo-500 text-lg"
+      v-else
+    >
       <h3>{{ wallet.address }}</h3>
       <p>{{ `${wallet.balance} ETH` }}</p>
     </div>
@@ -30,8 +35,13 @@ export default defineComponent({
     const erc721Tokens = toRef(globalState, 'erc721Tokens')
 
     const connectWallet = async () => {
-      const provider = await enableProvider()
-      const address = await readAddress()
+      const provider = (await enableProvider()) as ethers.providers.JsonRpcProvider
+      const address = await readAddress(provider)
+      if (!address) {
+        window.alert('Cannot read wallet address!')
+        return
+      }
+
       wallet.value = { address, balance: '' }
       let balance = await readBalance(provider, address)
       balance = balance || ''

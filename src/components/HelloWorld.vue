@@ -3,16 +3,14 @@
     <div class="flex-initial prose">
       <h1>{{ msg }}</h1>
     </div>
-    <wallect-connector />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import WallectConnector from './WallectConnector.vue'
 
 export default defineComponent({
-  components: { WallectConnector },
+  components: {},
   props: {
     msg: String,
   },

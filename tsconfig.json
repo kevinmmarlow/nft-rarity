@@ -8,8 +8,14 @@
     "noUnusedParameters": true,
     "experimentalDecorators": true,
     "lib": ["dom", "esnext"],
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noImplicitAny": false,
+    "declaration": true,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"] // Simply long relative path in import to alias "@"
+    }
   },
-  // "include": ["src/*.ts", "src/**/*.ts", "src/**/*.vue", "tests/**/*.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "public"]
 }

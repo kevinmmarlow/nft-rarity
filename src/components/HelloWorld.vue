@@ -1,8 +1,6 @@
 <template>
-  <div class="mb-10 w-full flex justify-between align-end space-x-10">
-    <div class="flex-initial prose">
-      <h1>{{ msg }}</h1>
-    </div>
+  <div class="mb-10">
+    <h1 class="font-extrabold text-4xl">{{ msg }}</h1>
   </div>
 </template>
 

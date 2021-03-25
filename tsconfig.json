@@ -2,16 +2,17 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
+    "baseUrl": ".",
     "moduleResolution": "node",
     "strict": true,
+    "allowJs": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "experimentalDecorators": true,
-    "lib": ["dom", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "resolveJsonModule": true,
     "noImplicitAny": false,
     "declaration": true,
-    "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"] // Simply long relative path in import to alias "@"
     }

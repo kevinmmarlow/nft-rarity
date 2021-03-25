@@ -1,5 +1,5 @@
 <template>
-  <table v-if="data.length > 0" class="w-full table-fixed">
+  <table v-if="data.length > 0" class="table-auto mb-16">
     <thead>
       <tr>
         <th

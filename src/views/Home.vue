@@ -1,5 +1,5 @@
 <template>
-  <div class="pt-8">
+  <div>
     <hello-world :msg="getHeader()" />
     <token-table :data="erc20Tokens" :headers="erc20Headers" />
     <token-table :data="erc721Tokens" :headers="erc721Headers" />

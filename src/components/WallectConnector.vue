@@ -4,7 +4,7 @@
       Connect Wallet
     </button>
     <div
-      class="flex space-x-4 font-bold py-2 px-4 rounded-md border border-indigo-500 text-lg"
+      class="flex space-x-4 py-1 px-4 rounded-md border border-indigo-500 bg-gray-200 text-md"
       v-else
     >
       <h3>{{ wallet.address }}</h3>
@@ -105,11 +105,6 @@ export default defineComponent({
               .balanceOf(owner)
               .then((result: ethers.BigNumber) => (result ? result.toString() : 0))
 
-            // for (var i = 0; i < balance.toNumber(); i++) {
-            //   const tokenId = await contract.tokenOfOwnerByIndex.call(owner, i)
-            //   console.log(tokenId)
-            // }
-
             resolve({
               name: data.name,
               balance,
@@ -126,7 +121,12 @@ export default defineComponent({
         .filter((result) => result.status === 'fulfilled')
         .map((result) => (result as PromiseFulfilledResult<Erc721Token>).value as Erc721Token)
 
-      erc721Tokens.value = pureBalances as Array<Erc721Token>
+      let withBalances = pureBalances.filter((item) => item.balance !== '0')
+      if (withBalances.length === 0) {
+        withBalances = pureBalances.slice(0, 10)
+      }
+
+      erc721Tokens.value = withBalances as Array<Erc721Token>
     }
 
     return {

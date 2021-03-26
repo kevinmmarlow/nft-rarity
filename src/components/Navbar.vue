@@ -1,7 +1,7 @@
 <template>
   <!-- navbar -->
   <nav class="fixed inset-x-0 top-0 bg-gray-100">
-    <div class="px-8 xl:max-w-6xl mx-auto">
+    <div class="px-8 xl:max-w-6xl mx-auto z-50">
       <div class="flex justify-between">
         <div class="flex space-x-4">
           <!-- logo -->
@@ -42,7 +42,7 @@
 
     <!-- mobile menu -->
     <transition name="fade">
-      <div v-show="mobileMenuVisible" class="md:hidden bg-gray-100">
+      <div v-if="mobileMenuVisible" class="md:hidden bg-gray-100">
         <router-link
           class="block py-4 px-8 text-lg hover:bg-gray-200 active:bg-gray-400"
           to="/crypto-punks"

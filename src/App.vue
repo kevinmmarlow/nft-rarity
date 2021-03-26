@@ -3,9 +3,7 @@
     <navbar />
     <main class="pt-8 max-w-6xl mx-auto px-8">
       <router-view v-slot="{ Component }">
-        <transition name="fade">
-          <component :is="Component" />
-        </transition>
+        <component :is="Component" />
       </router-view>
     </main>
   </div>

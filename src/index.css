@@ -12,3 +12,17 @@
 .btn-indigo:hover {
     @apply bg-indigo-700;
 }
+
+/* Transitions */
+
+.fade-enter-active, .fade-leave-active {
+    transition: opacity;
+}
+
+.v-enter-from, .v-leave-to {
+    opacity: 0;
+}
+
+.v-leave-from, .v-enter-to {
+    opacity: 1;
+}

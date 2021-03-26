@@ -41,18 +41,20 @@
     </div>
 
     <!-- mobile menu -->
-    <div v-show="mobileMenuVisible" class="md:hidden bg-gray-100">
-      <router-link
-        class="block py-4 px-8 text-lg hover:bg-gray-200 active:bg-gray-400"
-        to="/crypto-punks"
-        >CryptoPunks</router-link
-      >
-      <router-link
-        class="block py-4 px-8 text-lg hover:bg-gray-200 active:bg-gray-400"
-        to="/moon-cats"
-        >Moon Cats</router-link
-      >
-    </div>
+    <transition name="fade">
+      <div v-show="mobileMenuVisible" class="md:hidden bg-gray-100">
+        <router-link
+          class="block py-4 px-8 text-lg hover:bg-gray-200 active:bg-gray-400"
+          to="/crypto-punks"
+          >CryptoPunks</router-link
+        >
+        <router-link
+          class="block py-4 px-8 text-lg hover:bg-gray-200 active:bg-gray-400"
+          to="/moon-cats"
+          >Moon Cats</router-link
+        >
+      </div>
+    </transition>
   </nav>
 </template>
 
@@ -60,7 +62,8 @@
 import logo from '../assets/patent_2.svg'
 import menu from '../assets/menu.svg'
 import WallectConnector from './WallectConnector.vue'
-import { defineComponent, ref } from 'vue'
+import { defineComponent, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   components: { WallectConnector },
@@ -70,6 +73,13 @@ export default defineComponent({
     const toggleMobileMenu = () => {
       mobileMenuVisible.value = !mobileMenuVisible.value
     }
+
+    const router = useRouter()
+    onMounted(() => {
+      router.beforeEach(() => {
+        mobileMenuVisible.value = false
+      })
+    })
 
     return {
       logo,

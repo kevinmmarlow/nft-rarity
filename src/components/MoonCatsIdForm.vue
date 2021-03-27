@@ -1,11 +1,11 @@
 <template>
   <div v-if="showing" class="flex items-center justify-center">
-    <div class="w-full border bg-white shadow-lg rounded max-w-xlg">
-      <div class="float-right text-gray-300 text-xl">
+    <div class="relative w-full border bg-white shadow-lg rounded md:max-w-xlg">
+      <div class="z-3 absolute right-0 top-0 text-gray-300 text-xl">
         <button class="px-6 py-4" @click.prevent="handleClose">X</button>
       </div>
-      <div class="flex p-8">
-        <form class="flex-none px-8 pt-6 pb-8 mb-4" @submit.prevent="handleSubmit">
+      <div class="flex flex-col md:flex-row p-4 md:p-8">
+        <form class="flex-none px-8 pt-10 md:pt-6 pb-8 mb-4" @submit.prevent="handleSubmit">
           <div class="mb-6 text-gray-600 text-lg font-bold">Fill in the hex or wrapped ID.</div>
           <div class="mb-10">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="mooncat-id">
@@ -51,9 +51,13 @@
           </div>
         </form>
         <div
-          class="flex-grow flex flex-col mid-width-300 space-y-1 items-center justify-center text-gray-800"
+          class="flex-grow flex flex-col md:mid-width-300 space-y-1 items-center justify-center text-gray-800 py-4 md:py-0"
         >
-          <img v-if="imageSrc" class="mb-10 moon-cat-image" :src="imageSrc" />
+          <img
+            v-if="imageSrc"
+            class="mb-10 px-16 md:p-0 max-w-xs md:max-w-sm w-full sm:w-9/12 md:w-6/12"
+            :src="imageSrc"
+          />
           <div
             v-else
             class="moon-cat-image-placeholder rounded rounded-lg border-2 border-gray-100 flex items-center"
@@ -82,7 +86,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, getCurrentInstance, ref } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { getBlock, getOpenSeaAsset, getOriginalId, getWrappedId } from '../api/etherscan'
 
 const getOriginalImageSource = (originalId: string): string => {

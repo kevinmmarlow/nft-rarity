@@ -53,29 +53,3 @@ export const getOpenSeaAsset = (wrappedId: string) => {
     'https://api.opensea.io/api/v1/asset/0x7c40c393dc0f283f318791d746d894ddd3693572/' + wrappedId
   return Axios.get(url)
 }
-
-export const parseOpenSeaResponse = (data: any) => {
-  let saleText = 'Last sale: NA'
-
-  if (data.last_sale) {
-    const price = (parseInt(data.last_sale.total_price) / 10 ** 18).toFixed(2)
-    saleText = `Last sale: ${price} ${data.last_sale.payment_token.symbol}`
-  }
-
-  let priceText = '- not on sale -'
-  if (!data.orders) {
-    return { saleText, priceText }
-  }
-
-  const ownerData = data.orders.find((order) => order.maker.address === data.owner.address)
-
-  if (ownerData) {
-    const currentPrice = (parseInt(ownerData.current_price) / 10 ** 18).toFixed(2)
-    priceText = `Price: ${currentPrice} ETH`
-  }
-
-  return {
-    saleText,
-    priceText,
-  }
-}

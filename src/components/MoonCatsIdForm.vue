@@ -1,33 +1,22 @@
 <template>
   <div v-if="showing" class="flex items-center justify-center">
-    <div class="w-full bg-white shadow-lg rounded max-w-xlg">
+    <div class="w-full border bg-white shadow-lg rounded max-w-xlg">
+      <div class="float-right text-gray-300 text-xl">
+        <button class="px-6 py-4" @click.prevent="handleClose">X</button>
+      </div>
       <div class="flex p-8">
         <form class="flex-none px-8 pt-6 pb-8 mb-4" @submit.prevent="handleSubmit">
-          <div class="mb-6 text-gray-600 text-lg font-bold">
-            Fill in one of the fields and press convert.
-          </div>
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="original">
-              Original ID
+          <div class="mb-6 text-gray-600 text-lg font-bold">Fill in the hex or wrapped ID.</div>
+          <div class="mb-10">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="mooncat-id">
+              MoonCat ID
             </label>
             <input
               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="original"
-              v-model="original"
+              id="mooncat-id"
+              v-model="mooncatId"
               type="text"
-              placeholder="Original ID"
-            />
-          </div>
-          <div class="mb-14">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="wrapped">
-              Wrapped ID
-            </label>
-            <input
-              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="wrapped"
-              v-model="wrapped"
-              type="text"
-              placeholder="Wrapped ID"
+              placeholder="Ex. 0x00b3dff061 or 1234"
             />
           </div>
           <div class="flex flex-col">
@@ -57,21 +46,31 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Convert
+              Find that Cat
             </button>
           </div>
         </form>
         <div
-          class="flex-grow flex flex-col mid-width-300 space-y-1 items-center justify-center p-10 text-gray-800"
+          class="flex-grow flex flex-col mid-width-300 space-y-1 items-center justify-center text-gray-800"
         >
-          <img class="mb-10" :src="imageSrc" />
+          <img v-if="imageSrc" class="mb-10 moon-cat-image" :src="imageSrc" />
+          <div
+            v-else
+            class="moon-cat-image-placeholder rounded rounded-lg border-2 border-gray-100 flex items-center"
+          >
+            <span class="text-gray-100 text-5xl font-bold text-center w-full">?</span>
+          </div>
 
+          <div v-if="original">Original ID: {{ original }}</div>
+          <div v-if="wrapped">Wrapped ID: #{{ wrapped }}</div>
           <div v-if="saleRef">{{ saleRef }}</div>
           <div v-if="priceRef">{{ priceRef }}</div>
           <div v-if="linkRef">
             <a
               class="underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
               :href="linkRef"
+              target="_blank"
+              rel="noopener noreferrer"
               >Go to Opensea</a
             >
           </div>
@@ -83,14 +82,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
-import {
-  getBlock,
-  getOpenSeaAsset,
-  getOriginalId,
-  getWrappedId,
-  parseOpenSeaResponse,
-} from '../api/etherscan'
+import { defineComponent, getCurrentInstance, ref } from 'vue'
+import { getBlock, getOpenSeaAsset, getOriginalId, getWrappedId } from '../api/etherscan'
 
 const getOriginalImageSource = (originalId: string): string => {
   const patt = originalId.substring(4, 6)
@@ -116,7 +109,9 @@ export interface Result {
   transactionIndex: string
 }
 
-const parseGetWrappedIdResponse = (data: EtherscanResult) => {
+const parseGetWrappedIdResponse = (data: EtherscanResult): string => {
+  if (!data.result || data.result.length === 0) throw 'No result'
+
   let wrapID = data.result[0].data
   wrapID = wrapID.substring(2)
   wrapID = wrapID.replace(/\b0+/g, '')
@@ -125,6 +120,8 @@ const parseGetWrappedIdResponse = (data: EtherscanResult) => {
 }
 
 const parseGetOriginalIdResponse = (data: EtherscanResult): string => {
+  if (!data.result || data.result.length === 0) throw 'No result'
+
   let block = data.result[0].blockNumber
   block = block.substring(2)
   block = parseInt(block, 16).toString()
@@ -132,10 +129,41 @@ const parseGetOriginalIdResponse = (data: EtherscanResult): string => {
 }
 
 const parseBlockResponse = (data: EtherscanResult, hex: string) => {
+  if (!data.result || data.result.length === 0) throw 'No result'
+
   const id = data.result.findIndex((r) => r.data === hex)
-  let idOrig = data.result[id].topics[1]
+  const match = data.result[id]
+  if (!match.topics || match.topics.length < 2) throw 'No topics'
+
+  let idOrig = match.topics[1]
   idOrig = idOrig.substring(0, 12)
   return idOrig
+}
+
+const parseOpenSeaResponse = (data: any) => {
+  let saleText = 'Last sale: N/A'
+
+  if (data.last_sale) {
+    const price = (parseInt(data.last_sale.total_price) / 10 ** 18).toFixed(2)
+    saleText = `Last sale: ${price} ${data.last_sale.payment_token.symbol}`
+  }
+
+  let priceText = 'Price: Not on sale'
+  if (!data.orders) {
+    return { saleText, priceText }
+  }
+
+  const ownerData = data.orders.find((order) => order.maker.address === data.owner.address)
+
+  if (ownerData) {
+    const currentPrice = (parseInt(ownerData.current_price) / 10 ** 18).toFixed(2)
+    priceText = `Price: ${currentPrice} ETH`
+  }
+
+  return {
+    saleText,
+    priceText,
+  }
 }
 
 const wrappedIdToHex = (wrappedId: string): string => {
@@ -146,7 +174,7 @@ const wrappedIdToHex = (wrappedId: string): string => {
   return hex
 }
 
-const getLinks = async (originalId: string, wrappedId: string) => {
+const getPriceInfo = async (wrappedId: string) => {
   const openSeaResponse = await getOpenSeaAsset(wrappedId)
   const { saleText, priceText } = parseOpenSeaResponse(openSeaResponse.data)
   const link =
@@ -154,23 +182,31 @@ const getLinks = async (originalId: string, wrappedId: string) => {
     wrappedId +
     '?ref=0x8d489939132bfc1169d71e1c5c58e90eaa1f1122'
 
-  const imgSrc = getOriginalImageSource(originalId)
   return {
     saleText,
     priceText,
     linkText: link,
-    imageSource: imgSrc,
   }
+}
+
+const matchesWrappedIdPattern = (value: string) => {
+  return value.match(/^[0-9]+$/)
+}
+
+const matchesOriginalIdPattern = (value: string) => {
+  return value.match(/^0[xX][0-9a-fA-F]+$/)
 }
 
 export default defineComponent({
   props: {
     showing: Boolean,
   },
-  setup() {
-    const original = ref('')
-    const wrapped = ref('')
-    const result = ref('')
+  emits: ['close'],
+  setup(_, { emit }) {
+    const mooncatId = ref<string>()
+    const original = ref<string>()
+    const wrapped = ref<string>()
+    const result = ref<string>()
     const imageSrc = ref<string>()
     const saleRef = ref<string>()
     const priceRef = ref<string>()
@@ -178,62 +214,77 @@ export default defineComponent({
     const loading = ref(false)
 
     const handleSubmit = async () => {
-      loading.value = true
-      if (original.value) {
-        const response = await getWrappedId(original.value)
-        imageSrc.value = getOriginalImageSource(original.value)
+      result.value = ''
+      imageSrc.value = undefined
+      original.value = undefined
+      wrapped.value = undefined
+      saleRef.value = undefined
+      priceRef.value = undefined
+      linkRef.value = undefined
 
-        if (response.status !== 200 || (response.status === 200 && response.data.status === '0')) {
-          result.value = 'not found or wrapped'
-        } else {
-          const data = response.data
-          const wrappedId = parseGetWrappedIdResponse(data)
-          wrapped.value = wrappedId
-          const { saleText, priceText, linkText, imageSource } = await getLinks(
-            original.value,
-            wrappedId
-          )
-          saleRef.value = saleText
-          priceRef.value = priceText
-          linkRef.value = linkText
-          imageSrc.value = imageSource
-          loading.value = false
-        }
-      } else if (wrapped.value) {
-        const response = await getOriginalId(wrappedIdToHex(wrapped.value))
-        if (response.status !== 200 || (response.status === 200 && response.data.status === '0')) {
-          result.value = 'not found or wrapped'
-        } else {
-          const data = response.data
-          const block = parseGetOriginalIdResponse(data)
-          const blockResponse = await getBlock(block)
-          if (
-            blockResponse.status !== 200 ||
-            (blockResponse.status === 200 && blockResponse.data.status === '0')
-          ) {
+      if (mooncatId.value) {
+        loading.value = true
+        const currentId = mooncatId.value
+        if (matchesWrappedIdPattern(currentId)) {
+          const { status, data } = await getOriginalId(wrappedIdToHex(currentId))
+          if (status !== 200 || (status === 200 && data.status === '0')) {
             result.value = 'not found or wrapped'
+            loading.value = false
           } else {
-            const data = blockResponse.data
-            const originalId = parseBlockResponse(data, wrappedIdToHex(wrapped.value))
-            original.value = originalId
-            const { saleText, priceText, linkText, imageSource } = await getLinks(
-              originalId,
-              wrapped.value
-            )
+            const block = parseGetOriginalIdResponse(data)
+            const blockResponse = await getBlock(block)
+            if (
+              blockResponse.status !== 200 ||
+              (blockResponse.status === 200 && blockResponse.data.status === '0')
+            ) {
+              result.value = 'not found or wrapped'
+              loading.value = false
+            } else {
+              const data = blockResponse.data
+              const originalId = parseBlockResponse(data, wrappedIdToHex(currentId))
+              const { saleText, priceText, linkText } = await getPriceInfo(currentId)
+
+              original.value = originalId
+              wrapped.value = currentId
+              imageSrc.value = getOriginalImageSource(originalId)
+              saleRef.value = saleText
+              priceRef.value = priceText
+              linkRef.value = linkText
+              loading.value = false
+            }
+          }
+        } else if (matchesOriginalIdPattern(currentId)) {
+          const { status, data } = await getWrappedId(currentId)
+
+          if (status !== 200 || (status === 200 && data.status === '0')) {
+            result.value = 'not found or wrapped'
+            loading.value = false
+          } else {
+            const wrappedId = parseGetWrappedIdResponse(data)
+            const { saleText, priceText, linkText } = await getPriceInfo(wrappedId)
+
+            original.value = currentId
+            wrapped.value = wrappedId
+            imageSrc.value = getOriginalImageSource(currentId)
             saleRef.value = saleText
             priceRef.value = priceText
             linkRef.value = linkText
-            imageSrc.value = imageSource
             loading.value = false
           }
+        } else {
+          result.value = 'ID does not match an ID format.'
+          loading.value = false
         }
-      } else {
-        loading.value = false
       }
     }
 
+    const handleClose = () => {
+      // TODO: Stop async calls
+      emit('close')
+    }
+
     return {
-      handleSubmit,
+      mooncatId,
       original,
       wrapped,
       result,
@@ -242,6 +293,8 @@ export default defineComponent({
       priceRef,
       linkRef,
       loading,
+      handleSubmit,
+      handleClose,
     }
   },
 })
@@ -250,5 +303,12 @@ export default defineComponent({
 <style>
 .mid-width-300 {
   min-width: 300px;
+}
+.moon-cat-image {
+  width: 200px;
+}
+.moon-cat-image-placeholder {
+  width: 200px;
+  height: 200px;
 }
 </style>

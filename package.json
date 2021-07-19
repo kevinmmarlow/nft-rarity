@@ -28,7 +28,7 @@
     "@vue/eslint-config-typescript": "^7.0.0",
     "autoprefixer": "^9.8.6",
     "cypress": "^6.8.0",
-    "eslint": "^7.13.0",
+    "eslint": "^7.31.0",
     "eslint-plugin-vue": "^7.8.0",
     "path": "^0.12.7",
     "postcss": "^7.0.35",
